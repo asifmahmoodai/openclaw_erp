@@ -1,0 +1,291 @@
+{% extends "templates/web.html" %}
+
+{% block page_content %}
+<style>
+  :root {
+    --bg: #09111f;
+    --panel: rgba(11, 21, 38, 0.9);
+    --panel-2: rgba(18, 32, 57, 0.9);
+    --line: rgba(125, 166, 219, 0.18);
+    --text: #eaf2ff;
+    --muted: #8ea8c8;
+    --accent: #4fd1c5;
+    --accent-2: #8bd450;
+    --warn: #ffcf5a;
+    --risk: #ff7f6e;
+    --glow: rgba(79, 209, 197, 0.28);
+  }
+
+  body {
+    background:
+      radial-gradient(circle at top left, rgba(79, 209, 197, 0.16), transparent 26%),
+      radial-gradient(circle at top right, rgba(139, 212, 80, 0.12), transparent 22%),
+      linear-gradient(180deg, #050b15 0%, #09111f 42%, #07101a 100%);
+    color: var(--text);
+  }
+
+  .page_content { padding: 0; }
+  .nig-shell { max-width: 1440px; margin: 0 auto; padding: 36px 24px 56px; }
+  .hero { display: grid; grid-template-columns: 1.4fr 1fr; gap: 22px; align-items: stretch; margin-bottom: 22px; }
+  .hero-main, .hero-side, .panel {
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    background: var(--panel);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.28);
+    backdrop-filter: blur(20px);
+  }
+  .hero-main { padding: 28px; position: relative; overflow: hidden; }
+  .hero-main::after {
+    content: ""; position: absolute; inset: auto -80px -80px auto; width: 240px; height: 240px;
+    background: radial-gradient(circle, var(--glow), transparent 70%);
+  }
+  .eyebrow, .section-kicker {
+    color: var(--accent); letter-spacing: 0.14em; text-transform: uppercase; font-size: 12px; font-weight: 700;
+  }
+  .hero-title { margin: 14px 0 10px; font-size: clamp(34px, 4vw, 58px); line-height: 1.02; font-weight: 800; max-width: 10ch; }
+  .hero-copy, .muted { color: var(--muted); }
+  .hero-copy { max-width: 64ch; font-size: 16px; line-height: 1.65; margin-bottom: 24px; }
+  .hero-badges, .tab-row { display: flex; flex-wrap: wrap; gap: 10px; }
+  .badge, .tab {
+    border: 1px solid var(--line); border-radius: 999px; padding: 10px 14px; color: var(--text);
+    background: rgba(255, 255, 255, 0.02); font-size: 13px;
+  }
+  .tab.active { border-color: rgba(79, 209, 197, 0.5); background: rgba(79, 209, 197, 0.12); color: #cbfffb; }
+  .hero-side {
+    padding: 24px;
+    background:
+      linear-gradient(180deg, rgba(24, 42, 73, 0.88), rgba(11, 21, 38, 0.88)),
+      radial-gradient(circle at top right, rgba(139, 212, 80, 0.12), transparent 30%);
+  }
+  .hero-side-grid, .kpi-grid, .content-grid { display: grid; gap: 14px; }
+  .hero-side-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 18px; }
+  .hero-metric { padding: 16px; border-radius: 18px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.05); }
+  .hero-metric-value { display: block; font-size: 24px; font-weight: 800; margin-top: 8px; }
+  .kpi-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); margin-bottom: 22px; }
+  .kpi-card { padding: 18px 20px; }
+  .kpi-label, .table th, .timeline-time { color: var(--muted); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; }
+  .kpi-value { display: block; margin: 12px 0 10px; font-size: 32px; font-weight: 800; }
+  .delta.up { color: var(--accent-2); }
+  .delta.watch { color: var(--warn); }
+  .delta.risk { color: var(--risk); }
+  .content-grid { grid-template-columns: 1.35fr 0.95fr; }
+  .stack { display: grid; gap: 22px; }
+  .panel { padding: 22px; }
+  .panel h3 { margin: 8px 0; font-size: 24px; }
+  .panel-top { display: flex; justify-content: space-between; align-items: center; gap: 14px; margin-bottom: 18px; }
+  .table { width: 100%; border-collapse: collapse; }
+  .table th, .table td { padding: 12px 0; border-bottom: 1px solid var(--line); text-align: left; }
+  .table tr:last-child td { border-bottom: 0; }
+  .pipeline-row, .alert-card, .warehouse-row, .timeline-item { display: grid; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+  .pipeline-row:last-child, .alert-card:last-child, .warehouse-row:last-child, .timeline-item:last-child { border-bottom: 0; }
+  .pipeline-row { grid-template-columns: 1.2fr 0.8fr 0.8fr; align-items: center; }
+  .status-pill { display: inline-flex; align-items: center; gap: 8px; width: fit-content; border-radius: 999px; padding: 7px 12px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .status-pill.stable { background: rgba(79, 209, 197, 0.12); color: #b5fff7; }
+  .status-pill.watch { background: rgba(255, 207, 90, 0.12); color: #ffe39a; }
+  .status-pill.risk { background: rgba(255, 127, 110, 0.14); color: #ffc0b6; }
+  .alert-card { grid-template-columns: 110px 1fr; align-items: start; }
+  .severity { border-radius: 14px; padding: 10px 12px; text-align: center; font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 800; }
+  .severity.Critical { background: rgba(255, 127, 110, 0.14); color: #ffc7bd; }
+  .severity.High { background: rgba(255, 207, 90, 0.12); color: #ffe39a; }
+  .severity.Medium { background: rgba(79, 209, 197, 0.12); color: #b5fff7; }
+  .chart-shell { padding: 18px; border-radius: 20px; background: var(--panel-2); border: 1px solid var(--line); }
+  .trend-chart { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 10px; align-items: end; height: 260px; margin-top: 18px; }
+  .trend-col { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .bars { width: 100%; height: 190px; display: flex; align-items: end; justify-content: center; gap: 7px; }
+  .bar { width: 14px; border-radius: 999px 999px 6px 6px; background: linear-gradient(180deg, rgba(79, 209, 197, 0.95), rgba(79, 209, 197, 0.22)); }
+  .bar.forecast { background: linear-gradient(180deg, rgba(139, 212, 80, 0.9), rgba(139, 212, 80, 0.2)); }
+  .month { color: var(--muted); font-size: 12px; text-transform: uppercase; }
+  .matrix { display: grid; gap: 10px; }
+  .matrix-row, .matrix-head { display: grid; grid-template-columns: 1.1fr repeat(4, 0.7fr); gap: 10px; align-items: center; }
+  .matrix-cell, .matrix-sku { padding: 12px; border-radius: 14px; border: 1px solid var(--line); background: rgba(255, 255, 255, 0.02); }
+  .matrix-cell { text-align: center; font-weight: 800; }
+  .matrix-cell.hot { background: rgba(139, 212, 80, 0.12); }
+  .matrix-cell.warm { background: rgba(79, 209, 197, 0.12); }
+  .matrix-cell.cool { background: rgba(255, 207, 90, 0.10); }
+  .matrix-cell.risk { background: rgba(255, 127, 110, 0.12); }
+  .warehouse-bar { position: relative; height: 10px; border-radius: 999px; background: rgba(255, 255, 255, 0.06); overflow: hidden; margin-top: 10px; }
+  .warehouse-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
+  .timeline-item { grid-template-columns: 80px 1fr; }
+  .footnote { margin-top: 18px; color: var(--muted); font-size: 13px; }
+  @media (max-width: 1100px) { .hero, .content-grid, .kpi-grid { grid-template-columns: 1fr; } }
+</style>
+
+<div class="nig-shell">
+  <section class="hero">
+    <div class="hero-main">
+      <div class="eyebrow">Nig Commerce Enterprise Suite</div>
+      <h1 class="hero-title">Omnichannel command center built for boardroom demos.</h1>
+      <p class="hero-copy">
+        A premium ERP operating model for enterprise commerce teams: revenue control, inventory precision,
+        customer intelligence, exceptions management, and executive analytics in one coordinated workspace.
+      </p>
+      <div class="hero-badges">
+        <span class="badge">Order-to-cash control tower</span>
+        <span class="badge">Inventory and procurement intelligence</span>
+        <span class="badge">Customer 360 with profitability</span>
+        <span class="badge">Audit trail and alerting</span>
+      </div>
+    </div>
+    <div class="hero-side">
+      <div class="section-kicker">Demo Story</div>
+      <h3>What this large client sees in 90 seconds</h3>
+      <p class="muted">
+        Executive metrics first, operational bottlenecks second, and live interventions third. The narrative is
+        built to feel like a modern enterprise control tower, not a generic admin screen.
+      </p>
+      <div class="hero-side-grid">
+        <div class="hero-metric"><span class="kpi-label">Forecast Accuracy</span><span class="hero-metric-value">94.2%</span></div>
+        <div class="hero-metric"><span class="kpi-label">On-time Dispatch</span><span class="hero-metric-value">98.1%</span></div>
+        <div class="hero-metric"><span class="kpi-label">Cash Conversion</span><span class="hero-metric-value">34 days</span></div>
+        <div class="hero-metric"><span class="kpi-label">Enterprise Renewal Health</span><span class="hero-metric-value">87 / 100</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="kpi-grid">
+    {% for kpi in kpis %}
+    <div class="panel kpi-card">
+      <div class="kpi-label">{{ kpi.label }}</div>
+      <span class="kpi-value">{{ kpi.value }}</span>
+      <div class="delta {{ kpi.tone }}">{{ kpi.delta }} vs prior quarter</div>
+    </div>
+    {% endfor %}
+  </section>
+
+  <section class="content-grid">
+    <div class="stack">
+      <div class="panel">
+        <div class="panel-top">
+          <div><div class="section-kicker">Executive Analytics</div><h3>Revenue trend and demand confidence</h3></div>
+          <div class="tab-row"><span class="tab active">Board View</span><span class="tab">Channel View</span><span class="tab">Category View</span></div>
+        </div>
+        <div class="chart-shell">
+          <div class="muted">Monthly revenue actual vs forecast, in millions</div>
+          <div class="trend-chart" id="trend-chart"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-top">
+          <div><div class="section-kicker">Commerce Operations</div><h3>Order orchestration pipeline</h3></div>
+          <span class="badge">2,768 active workflow items</span>
+        </div>
+        {% for row in pipeline %}
+        <div class="pipeline-row">
+          <div><strong>{{ row.stage }}</strong><br><span class="muted">{{ row.count }} transactions in flight</span></div>
+          <div>{{ row.sla }} SLA</div>
+          <div><span class="status-pill {{ row.status }}">{{ row.status }}</span></div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <div class="panel">
+        <div class="panel-top">
+          <div><div class="section-kicker">Commercial Intelligence</div><h3>Channel performance snapshot</h3></div>
+          <span class="badge">Live commercial mix</span>
+        </div>
+        <table class="table">
+          <thead><tr><th>Channel</th><th>Revenue</th><th>Share</th><th>Conversion</th><th>Service</th></tr></thead>
+          <tbody>
+            {% for channel in channels %}
+            <tr><td>{{ channel.name }}</td><td>{{ channel.revenue }}</td><td>{{ channel.share }}</td><td>{{ channel.conversion }}</td><td>{{ channel.service }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="stack">
+      <div class="panel">
+        <div class="panel-top">
+          <div><div class="section-kicker">Exception Desk</div><h3>Priority alerts</h3></div>
+          <span class="badge">Auto-prioritized</span>
+        </div>
+        {% for alert in alerts %}
+        <div class="alert-card">
+          <div class="severity {{ alert.severity }}">{{ alert.severity }}</div>
+          <div><strong>{{ alert.title }}</strong><div class="muted">{{ alert.detail }}</div></div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <div class="panel">
+        <div class="panel-top">
+          <div><div class="section-kicker">Inventory Command</div><h3>Warehouse health</h3></div>
+          <span class="badge">Multi-site</span>
+        </div>
+        {% for wh in warehouses %}
+        <div class="warehouse-row">
+          <div><strong>{{ wh.name }}</strong><br><span class="muted">Accuracy {{ wh.accuracy }} • Fill rate {{ wh.fill_rate }}</span></div>
+          <div>{{ wh.utilization }}% utilized</div>
+          <div class="warehouse-bar"><div class="warehouse-fill" style="width: {{ wh.utilization }}%;"></div></div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <div class="panel">
+        <div class="panel-top">
+          <div><div class="section-kicker">Customer 360</div><h3>Strategic accounts</h3></div>
+          <span class="badge">Profitability and risk</span>
+        </div>
+        <table class="table">
+          <thead><tr><th>Customer</th><th>Segment</th><th>LTV</th><th>Margin</th><th>Risk</th></tr></thead>
+          <tbody>
+            {% for customer in customers %}
+            <tr><td>{{ customer.name }}</td><td>{{ customer.segment }}</td><td>{{ customer.ltv }}</td><td>{{ customer.margin }}</td><td>{{ customer.risk }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="panel">
+        <div class="panel-top">
+          <div><div class="section-kicker">Operating Narrative</div><h3>Today’s command timeline</h3></div>
+          <span class="badge">Narrated for demos</span>
+        </div>
+        {% for item in timeline %}
+        <div class="timeline-item">
+          <div class="timeline-time">{{ item.time }}</div>
+          <div><strong>{{ item.event }}</strong><br><span class="muted">{{ item.owner }}</span></div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" style="margin-top: 22px;">
+    <div class="panel-top">
+      <div><div class="section-kicker">Margin Intelligence</div><h3>SKU-channel contribution matrix</h3></div>
+      <span class="badge">High-signal merchandising view</span>
+    </div>
+    <div class="matrix" id="margin-matrix"></div>
+    <div class="footnote">
+      Demo dataset designed to feel enterprise-ready: board metrics, service risk, strategic accounts,
+      replenishment pressure, and channel-specific profitability in one live command experience.
+    </div>
+  </section>
+</div>
+
+<script>
+  const dataset = {{ dataset_json | safe }};
+  const trendChart = document.getElementById("trend-chart");
+  dataset.monthly.forEach((point) => {
+    const col = document.createElement("div");
+    col.className = "trend-col";
+    col.innerHTML = `<div class="bars"><div class="bar" style="height:${point.actual * 40}px"></div><div class="bar forecast" style="height:${point.forecast * 40}px"></div></div><div class="month">${point.month}</div>`;
+    trendChart.appendChild(col);
+  });
+  const matrix = document.getElementById("margin-matrix");
+  const header = document.createElement("div");
+  header.className = "matrix-head";
+  header.innerHTML = `<div class="matrix-sku muted">SKU</div><div class="matrix-cell muted">DTC</div><div class="matrix-cell muted">Marketplace</div><div class="matrix-cell muted">Retail</div><div class="matrix-cell muted">Wholesale</div>`;
+  matrix.appendChild(header);
+  const tone = (value) => value >= 40 ? "hot" : value >= 30 ? "warm" : value >= 20 ? "cool" : "risk";
+  dataset.margin_matrix.forEach((row) => {
+    const el = document.createElement("div");
+    el.className = "matrix-row";
+    el.innerHTML = `<div class="matrix-sku">${row.sku}</div><div class="matrix-cell ${tone(row.dtc)}">${row.dtc}%</div><div class="matrix-cell ${tone(row.marketplace)}">${row.marketplace}%</div><div class="matrix-cell ${tone(row.retail)}">${row.retail}%</div><div class="matrix-cell ${tone(row.wholesale)}">${row.wholesale}%</div>`;
+    matrix.appendChild(el);
+  });
+</script>
+{% endblock %}
